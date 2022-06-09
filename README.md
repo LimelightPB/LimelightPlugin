@@ -1,2 +1,2 @@
 # LimelightPlugin
-A Pibooth plugin to send captured images to Limelight Server.
+A Pibooth plugin to send captured images to [LimelightServer](https://github.com/LimelightPB/LimelightServer).
