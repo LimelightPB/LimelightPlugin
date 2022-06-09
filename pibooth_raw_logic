@@ -1,0 +1,18 @@
+import requests
+
+LIMELIGHT_SERVER = "http://127.0.0.1:8080/"
+LIMELIGHT_CONTENT_POST_ENDPOINT = "images/1/content"
+LIMELIGHT_POST_URL = LIMELIGHT_SERVER + LIMELIGHT_CONTENT_POST_ENDPOINT
+
+POST_FILE_PATH = "/Users/josh/Documents/Python/test_image.jpg"
+
+print(LIMELIGHT_POST_URL)
+
+file = {"file": open(POST_FILE_PATH, 'rb')}
+
+response = requests.post(LIMELIGHT_POST_URL, file)
+
+if response.status_code == 200:
+    print("Success!")
+else:
+    print(f"Failure: {response.status_code}")
