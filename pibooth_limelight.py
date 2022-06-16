@@ -1,3 +1,4 @@
+import json
 import logging
 from http import HTTPStatus
 
@@ -18,40 +19,65 @@ LIMELIGHT_SERVER_URL = ""
 LIMELIGHT_SERVER_PUT_ENDPOINT = ""
 LIMELIGHT_SERVER_POST_ENDPOINT = ""
 
+
 def get_put_endpoint(id):
     # return f"images/{id}/content"
     return LIMELIGHT_SERVER_PUT_ENDPOINT.format(id)
 
+
 def get_put_url(id):
     return LIMELIGHT_SERVER_URL + get_put_endpoint(id)
+
 
 def get_post_endpoint():
     return LIMELIGHT_SERVER_POST_ENDPOINT
 
+
 def upload_photo(photo_path):
     logger.info(f"Beginning upload procedure for photo ({photo_path})")
-    pass
+    entity_id = do_post()
 
 
 def do_post():
-    response = requests.post(LIMELIGHT_SERVER_URL_DEFAULT)
+    url = "http://127.0.0.1:8080/images/"
+    payload = "{}"
+    headers = {"Content-Type": "application/hal+json"}
+
+    response = requests.post(url, headers=headers, data=payload)
+
+    if response.status_code != HTTPStatus.CREATED:
+        logger.error(f"HTTP error: {response.status_code}")
+    else:
+        logger.info("Image entity created successfully")
+        return get_id_from_entity_json(response.json())
+
+
+def get_id_from_entity_json(json):
+    json.get("id")
+
+
+def do_put(photo_path, id):
+    file = {"file": open(photo_path, 'rb')}
+
+    #TODO: swap for url generator function
+    url = f"http://127.0.0.1:8080/images/{id}/content"
+
+    payload = {}
+    files = [
+        ('file', ('photo.jpg', open(photo_path, 'rb'), 'image/jpeg'))
+    ]
+    headers = {}
+
+    response = requests.put(url, headers=headers, data=payload, files=files)
 
     if response.status_code == HTTPStatus.OK:
-        logger.debug("Success!")
+        logger.info(f"Uploaded image successfully with id {id}")
     else:
-        logger.debug(f"Failure: {response.status_code}")
-
-
-def do_put(photo_path):
-    file = {"file": open(photo_path, 'rb')}
-    pass
-
+        logger.error(f"HTTP error: {response.status_code}")
 
 @pibooth.hookimpl
 def pibooth_configure(cfg):
     """Set variables for Limelight endpoint access"""
-    LOGGER.debug("pibooth_configure hook caught by Limelight")
-    # logger.info("pibooth_configure hook caught by Limelight")
     logger.info("Configuring Limelight for Pibooth...")
 
     LIMELIGHT_SERVER_URL_DEFAULT = "http://127.0.0.1:8080/"
@@ -92,6 +118,7 @@ def pibooth_startup(cfg, app):
     logger.info(f"LL image post URL: {LIMELIGHT_SERVER_URL + LIMELIGHT_SERVER_POST_ENDPOINT}")
     logger.info(f"LL image put URL: {LIMELIGHT_SERVER_URL + get_put_endpoint('id')}")
 
+    # TODO: remove debug strings
     # logger.info(f"{get_put_endpoint(4)}")
     # logger.info(f"{get_put_endpoint(7)}")
 
